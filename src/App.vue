@@ -1,5 +1,8 @@
 <template>
   <div id="app">
+    <div class='header'>
+      NSummit2 Attendance
+    </div>
     <QrReader result="" error="" />
   </div>
 </template>
@@ -22,5 +25,13 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
+}
+
+.header {
+  background-color: black;
+  padding: 10px 5px;
+  color: white;
+  text-transform: uppercase;
+  font-weight: bold;
 }
 </style>
