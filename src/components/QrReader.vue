@@ -3,7 +3,7 @@
       ref="wrapper" @fullscreenchange="onFullscreenChange">
       <qrcode-reader class="qrreader">
         <div>
-          <img src="img/logo.png" alt="nsummit logo" /> 
+          <img src="img/logo.png" alt="nsummit logo" style='height:80px' /> 
         </div>
       </qrcode-reader>
     <qrcode-stream @decode="onDecode" @init="onInit" />

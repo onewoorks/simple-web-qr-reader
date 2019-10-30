@@ -1,8 +1,5 @@
 <template>
   <div id="app">
-    <div class='header'>
-      NSummit2 Attendance
-    </div>
     <QrReader result="" error="" />
   </div>
 </template>
