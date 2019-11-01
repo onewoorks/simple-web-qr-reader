@@ -1,11 +1,9 @@
 <template>
   <div :class="{ 'fullscreen': fullscreen }" 
       ref="wrapper" @fullscreenchange="onFullscreenChange">
-      <qrcode-reader class="qrreader">
-        <div>
+        <div class="qrreader">
           <img src="img/logo.png" alt="nsummit logo" style='height:80px' /> 
         </div>
-      </qrcode-reader>
     <qrcode-stream @decode="onDecode" @init="onInit" />
   <a 
     href="#myModal" 
@@ -44,14 +42,13 @@
 
 <script>
 import Axios from "axios";
-import { QrcodeStream, QrReader } from "vue-qrcode-reader";
+import { QrcodeStream } from "vue-qrcode-reader";
 import LottieAnimation from '../../node_modules/lottie-vuejs/src/LottieAnimation'
 
 export default {
   name: "QrReader",
   components: {
     QrcodeStream,
-    QrReader,
     LottieAnimation
   },
   data: function() {

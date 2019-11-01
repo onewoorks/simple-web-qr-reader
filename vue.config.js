@@ -1,6 +1,6 @@
 module.exports = {
   publicPath: "/",
   pwa: {
-    name: 'QR ATTENDANCE'
+    name: 'QR NSUMMIT2 ATTENDANCE'
   }
 }

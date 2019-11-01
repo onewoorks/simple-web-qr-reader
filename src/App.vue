@@ -31,4 +31,8 @@ export default {
   text-transform: uppercase;
   font-weight: bold;
 }
+
+.modal-backdrop {
+  display: none;
+}
 </style>
