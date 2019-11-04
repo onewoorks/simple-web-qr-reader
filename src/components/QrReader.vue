@@ -1,5 +1,6 @@
 <template>
   <div :class="{ 'fullscreen': fullscreen }" 
+      :key="componentKey"
       ref="wrapper" @fullscreenchange="onFullscreenChange">
         <div class="qrreader">
           <img src="img/logo.png" alt="nsummit logo" style='height:80px' /> 
@@ -17,9 +18,6 @@
         <div class="modal-content">
             <div class="modal-header model-header-success text-center">
                 <h5 class="modal-title">SITTING ZONE : {{ customer.sitting_zone }}</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">×</span>
-                </button>
             </div>
             <div class="modal-body p-4" id="result">
                     <div style='font-weight:bold'>{{ customer.name }}</div>
@@ -28,7 +26,11 @@
                     <div>{{ customer.register_date }}</div>
             </div>
             <div class="modal-footer">
-                  <button v-if="customer.valid == 1" type="button" class='btn btn-warning btn-block'>{{ customer.message }}</button>
+                  <button 
+                    v-if="customer.valid == 1" 
+                    type="button" 
+                    class='btn btn-warning btn-block'
+                    @click="onClose">{{ customer.message }}</button>
                   <button v-else type="button" @click="onConfirm" class="btn btn-block btn-success" data-dismiss="modal">CONFIRM</button>
                 </div>
                 
@@ -54,15 +56,12 @@ export default {
   data: function() {
     return {
       customer: {},
-      fullscreen: true
+      fullscreen: true,
+      componentKey: 0,
     };
   },
   methods: {
     onFullscreenChange(event) {
-      // This becomes important when the user doesn't use the button to exit
-      // fullscreen but hits ESC on desktop, pushes a physical back button on
-      // mobile etc.
-
       this.fullscreen = document.fullscreenElement !== null
     },
 
@@ -99,6 +98,9 @@ export default {
       this.reader = result;
       this.getResult(result)
     },
+    onClose(){
+      this.forceRerender()
+    },
     onConfirm() { 
       var customer_data = this.customer
       var post_data  = {
@@ -109,23 +111,29 @@ export default {
         "reader_counter"    : "1",
         "sitting_zone"      : customer_data.sitting_zone,
         "id_number"         : customer_data.id_number.toString(),
-        "qr_code"           : customer_data.id_number.toString()
+        "qr_code"           : customer_data.qr_code.toString()
       }
       Axios.post(process.env.VUE_APP_API+'/attendence/attend',post_data)
+      this.forceRerender()
+    },
+    forceRerender() {
+      this.componentKey += 1;  
     },
     getResult(read){
       Axios.get(process.env.VUE_APP_API+`/attendence/find/${read}`)
         .then(response => {
           var data = response.data;
+          var manual = (data.code == 950 ) ? true : false 
           this.customer = { 
-            id_number     : data.detail.id,
+            id_number     : (manual) ? "" : data.detail.id,
+            qr_code       : (manual) ? "" : data.detail.code,
             message       : data.message,
-            name          : data.detail.name.toUpperCase(),
-            phone_number  : data.detail.phone,
-            email         : data.detail.email,
-            register_date : data.detail.register_date,
-            sitting_zone  : data.detail.sitting,
-            valid         : data.detail.attend_status
+            name          : (manual) ? "" : data.detail.name.toUpperCase(),
+            phone_number  : (manual) ? "" : data.detail.phone,
+            email         : (manual) ? "" : data.detail.email,
+            register_date : (manual) ? "" : data.detail.register_date,
+            sitting_zone  : (manual) ? "ERROR!!!" : data.detail.sitting,
+            valid         : (manual) ? 1 : data.detail.attend_status
           };
           this.$refs.ticketModal.click()
       });
