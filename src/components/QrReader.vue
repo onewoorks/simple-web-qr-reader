@@ -6,10 +6,9 @@
     @fullscreenchange="onFullscreenChange"
   >
     <div class="qrreader">
-      <img src="img/logo.png" alt="nsummit logo" style="height:80px" />
-      <div class="detail">
+      <div class="detail" @click="reload_page">
         Reader Counter :
-        <span @click="reset_reader_counter">{{ reader_counter }}</span>
+        <span >{{ reader_counter }}</span>
       </div>
     </div>
     <qrcode-stream @decode="onDecode" @init="onInit" />
@@ -26,28 +25,29 @@
       <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
           <div class="modal-header model-header-success text-center">
-            <h5 class="modal-title">SITTING ZONE : {{ customer.sitting_zone }}</h5>
+            <h5 class="modal-title">{{ customer.sitting_zone }}</h5>
           </div>
           <div class="modal-body p-4" id="result">
             <div style="font-weight:bold">{{ customer.name }}</div>
             <div>{{ customer.phone_number }}</div>
+            <div>{{ customer.identification_no }}</div>
             <div>{{ customer.email }}</div>
             <div>{{ customer.register_date }}</div>
+            <hr>
+            <div>Remarks</div>
+            <div>{{ customer.remarks }} </div>
           </div>
           <div class="modal-footer">
             <button
-              v-if="customer.valid == 1"
-              type="button"
-              class="btn btn-warning btn-block"
-              @click="onClose"
-            >{{ customer.message }}</button>
-            <button
-              v-else
               type="button"
               @click="onConfirm"
               class="btn btn-block btn-success"
               data-dismiss="modal"
-            >CONFIRM</button>
+            >{{ customer.message}}</button>
+            <button
+              class="btn"
+              @click="reload_page"
+            >Cancel</button>
           </div>
         </div>
       </div>
@@ -117,18 +117,18 @@ export default {
       promise.catch(console.error);
     },
     onDecode(result) {
-      console.log(this.reader_counter)
-      if (this.reader_counter == null) {
-        if (result.startsWith("RC")) {
-          localStorage.setItem("counter_no", result);
-          this.reader_counter = result;
-        } else {
-          alert('counter not valid')
-        }
-      } else {
+      // console.log(this.reader_counter)
+      // if (this.reader_counter == null) {
+      //   if (result.startsWith("RC")) {
+      //     localStorage.setItem("counter_no", result);
+      //     this.reader_counter = result;
+      //   } else {
+      //     alert('counter not valid')
+      //   }
+      // } else {
         this.reader = result;
         this.getResult(result);
-      }
+      // }
     },
     onClose() {
       this.forceRerender();
@@ -145,28 +145,32 @@ export default {
         id_number: customer_data.id_number.toString(),
         qr_code: customer_data.qr_code.toString()
       };
-      Axios.post(process.env.VUE_APP_API + "/attendence/attend", post_data);
+      Axios.post(process.env.VUE_APP_API + "/attendence/next-status", post_data);
       this.forceRerender();
+    },
+    reload_page: function(){
+      location.reload()
     },
     forceRerender() {
       this.componentKey += 1;
     },
     getResult(read) {
       if (read != "") {
-        Axios.get(process.env.VUE_APP_API + `/attendence/find/${read}`).then(
+        Axios.get(process.env.VUE_APP_API + `/attendence/find-person/${read}`).then(
           response => {
             var data = response.data;
             var manual = data.code == 950 ? true : false;
             this.customer = {
               id_number: manual ? "" : data.detail.id,
-              qr_code: manual ? "" : data.detail.code,
-              message: data.message,
-              name: manual ? "" : data.detail.name.toUpperCase(),
-              phone_number: manual ? "" : data.detail.phone,
+              qr_code: manual ? "" : data.detail.id,
+              message: data.detail.current_status,
+              name: manual ? "" : data.detail.fullname.toUpperCase(),
+              phone_number: manual ? "" : data.detail.phone_no,
               email: manual ? "" : data.detail.email,
-              register_date: manual ? "" : data.detail.register_date,
-              sitting_zone: manual ? "ERROR!!!" : data.detail.sitting,
-              valid: manual ? 1 : data.detail.attend_status
+              register_date: manual ? "" : data.detail.timestamp,
+              sitting_zone: data.detail.register_mode,
+              identification_no : data.detail.identification_no,
+              remarks: data.detail.others
             };
             this.$refs.ticketModal.click();
           }
